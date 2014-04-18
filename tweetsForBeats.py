@@ -1,0 +1,40 @@
+import sqlite3 as lite
+import shapefile
+from haversine import haversine
+import pickle
+import sys
+from datetime import datetime
+
+def main(beatFile, dbName, shapeFileName, outputFile):
+	shapeFile = shapefile.Reader(shapeFileName)
+	results = pickle.load(open(beatFile, "rb"))
+	con = lite.connect(dbName)
+	cur = con.cursor()
+	cur.execute("Select * from TweetData")
+	tweets = cur.fetchall()
+	for i in range(len(shapeFile.records())):
+		record = shapeFile.records()[i]
+		shape = shapeFile.shapes()[i]
+		beatNum = record[3]
+		if beatNum == '3100':
+			continue
+		else:
+			for tweet in tweets:
+				lat = tweet[2]
+				long1 = tweet[3]
+				bbox = shape.bbox
+				centerLat = (bbox[0] + bbox[2]) / 2
+				centerLong = (bbox[1] + bbox[3]) / 2
+				haversineDist = haversine(long1, lat, centerLong, centerLat) 
+				if haversineDist < 1:
+					if beatNum in results:
+						tweetDay = datetime.strptime(tweet[4], "%Y-%m-%d %H:%M:%S.%f")
+						key = str(tweetDay.month) + "/" + str(tweetDay.day)
+						currRecord = results[beatNum][key]['tweets']
+						currRecord.append([tweet[0], tweet[1].strip().encode('utf-8'), tweet[4].encode('utf-8')])
+		print("processed " + str(i) + " beats")
+	pickle.dump(results, open(outputFile, "wb"))
+	return results
+
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
