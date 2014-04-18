@@ -3,24 +3,16 @@ import sqlite3 as lite
 import os
 
 def main():
-	aggressionFilenames = os.listdir("newAggressionPredictions")
+	aggressionFilenames = os.listdir("aggressionPredictions")
 	aggressionFilenames.sort()
-	#polarityFilenames = os.listdir("polarityPredictions")
-	#polarityFilenames.sort()
-	dbFilenames = os.listdir("newDBs")
+	dbFilenames = os.listdir("DBs")
 	dbFilenames.sort()
 	for i in range(len(aggressionFilenames)): 
-		con = lite.connect("newDBs/" + dbFilenames[i])
+		con = lite.connect("DBs/" + dbFilenames[i])
 		cur = con.cursor()
-		putAggressionRatingIntoDB(con, cur, "newAggressionPredictions/" + aggressionFilenames[i], "aggresive")
+		putAggressionRatingIntoDB(con, cur, "aggressionPredictions/" + aggressionFilenames[i], "aggresive")
 		print("done with: " + aggressionFilenames[i])
 		con.close()
-	#for i in range(len(polarityFilenames)):
-		#con = lite.connect("DBs/" + dbFilenames[i])
-		#cur = con.cursor() 
-		#putAggressionRatingIntoDB(con, cur, "polarityPredictions/" + polarityFilenames[i], "positive")
-		#print("done with: " + polarityFilenames[i])
-		#con.close()
 
 def putAggressionRatingIntoDB(con, cur, filename, fieldname):
 	csvfile = open(filename, "rB")
